@@ -17,11 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'app.html'))
 });
-app.listen(port, err => {
-  if (err) {
-    return console.error(err);
-  }
-  return console.log(`server is listening on ${port}`);
+app.listen(port, (res) => {
+  console.log(`server is listening on ${port}`);
 });
 
 //Compter le nombre de mots pour les soustraires
@@ -34,8 +31,35 @@ const countWords = (text) => {
   return 0;
 }
 
+//Fonction pour justifier le texte
+const justifyText = (text) => {
+  const maxLength = 80;
+  const words = text.split(/\s+/);
+  const lines = [];
 
+  let currentLine = '';
 
+  for (const word of words) {
+    if (currentLine.length + word.length + 1 <= maxLength) {
+      currentLine += (currentLine ? ' ' : '') + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+
+  lines.push(currentLine);
+
+  const justifiedLines = lines.map((line) => {
+    if (line.length < maxLength) {
+      const spacesToAdd = ' '.repeat(maxLength - line.length);
+      return line + spacesToAdd;
+    }
+    return line;
+  });
+
+  return justifiedLines.join('\n');
+}
 
 //Envoie du texte au serveur
 app.post('/api/justify', (req,res) => {
