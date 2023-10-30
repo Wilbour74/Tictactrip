@@ -10,29 +10,30 @@ const port = 7000;
 
 app.use(cors());
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(bodyParser.text()); 
 app.use(bodyParser.urlencoded({ extended: true })); 
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'app.html'))
 });
-app.listen(port, (res) => {
+app.listen(port, () => {
   console.log(`server is listening on ${port}`);
 });
 
 //Compter le nombre de mots pour les soustraires
-const countWords = (text) => {
-  if (text) {
+export const countWords = (text) => {
+  if (typeof text === 'string' && text.trim() !== '') {
     const words = text.split(/\s+/);
     const filteredWords = words.filter(word => word.trim() !== '');
     return filteredWords.length;
+  } else {
+    return "Le texte est vide ou n'est pas une chaîne de caractères valide";
   }
-  return 0;
 }
 
 //Fonction pour justifier le texte
-const justifyText = (text) => {
+export const justifyText = (text) => {
   const maxLength = 80;
   const words = text.split(/\s+/);
   const lines = [];
@@ -69,7 +70,7 @@ app.use('/api/justify', (req, res, next) => {
   const token = req.headers.authorization;
 
   if (!token) {
-    return res.status(401).json({ message: "Rentrez un token pour commencer " });
+    return res.status(401).json({ message: "Rentrez un token pour commencer (faites /api/token pour en avoir hein)" });
   }
 
   if (!wordCountByToken[token]) {
@@ -89,19 +90,24 @@ app.post('/api/justify', (req, res) => {
   const token = req.headers.authorization;
 
   const textToJustify = req.body;
-  const wordCount = countWords(textToJustify);
 
-  wordCountByToken[token] += wordCount;
+  if (typeof textToJustify !== 'string') {
+    return res.status(400).json({ message: 'Le texte est vide ou n\'est pas une chaîne de caractères valide' });
+  } else {
+    const wordCount = countWords(textToJustify);
 
-  const remainingWords = 80000 - wordCountByToken[token];
+    wordCountByToken[token] += wordCount;
 
-  const justifiedText = justifyText(textToJustify);
+    const remainingWords = 80000 - wordCountByToken[token];
 
-  console.log(`Voici le texte rentré : ${justifiedText}`);
-  console.log(`Nombre de mots : ${wordCount}`);
-  console.log(`Mots restants pour ce token : ${remainingWords}`);
+    const justifiedText = justifyText(textToJustify);
 
-  res.send(justifiedText);
+    console.log(`Voici le texte rentré : ${justifiedText}`);
+    console.log(`Nombre de mots : ${wordCount}`);
+    console.log(`Mots restants pour ce token : ${remainingWords}`);
+
+    res.send(justifiedText);
+  }
 });
 
 
@@ -113,3 +119,4 @@ app.post('/api/token' , (req, res) => {
    res.json({ token });
    console.log(token);
 })
+
