@@ -61,14 +61,48 @@ const justifyText = (text) => {
   return justifiedLines.join('\n');
 }
 
-//Envoie du texte au serveur
-app.post('/api/justify', (req,res) => {
-  const textTojustify = req.body;
-  const wordCount = countWords(textTojustify);
-  console.log(`Voici le texte rentré : ${textTojustify}`);
-  console.log(`Nombre de mots : ${wordCount}`);
-  res.send(`Nombre de mots:  ${wordCount}`)
+
+const wordCountByToken = {};
+
+//Ajout du token dans l'api/justify
+app.use('/api/justify', (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: "Rentrez un token pour commencer " });
+  }
+
+  if (!wordCountByToken[token]) {
+    wordCountByToken[token] = 0;
+  }
+
+  const remainingWords = 80000 - wordCountByToken[token];
+
+  if (remainingWords <= 0) {
+    return res.status(402).json({ message: 'Payment Required' });
+  }
+  next();
 })
+
+//Envoie du texte au serveur
+app.post('/api/justify', (req, res) => {
+  const token = req.headers.authorization;
+
+  const textToJustify = req.body;
+  const wordCount = countWords(textToJustify);
+
+  wordCountByToken[token] += wordCount;
+
+  const remainingWords = 80000 - wordCountByToken[token];
+
+  const justifiedText = justifyText(textToJustify);
+
+  console.log(`Voici le texte rentré : ${justifiedText}`);
+  console.log(`Nombre de mots : ${wordCount}`);
+  console.log(`Mots restants pour ce token : ${remainingWords}`);
+
+  res.send(justifiedText);
+});
 
 
 //Recupérer un token
