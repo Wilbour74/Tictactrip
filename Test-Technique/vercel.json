@@ -1,10 +1,11 @@
 {
     "version": 2,
-    "name" : "test-technique",
-    "builds" : [
-        { "src" : "./dist/app.js", "use" : "@vercel/node"}
+    "name": "test-technique",
+    "builds": [
+      { "src": "dist/app.js", "use": "@vercel/node" }
     ],
     "routes": [
-        { "src" : "/(.*)", "dest" : "./dist/app.js"}
+      { "src": "/(.*)", "dest": "dist/app.js" }
     ]
-}
+  }
+  
