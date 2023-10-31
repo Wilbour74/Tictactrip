@@ -13,7 +13,9 @@ describe('countWords', () => {
         expect(result).toBe(7);
     });
     it("Idem", () => {
-        const texte = "";
+        const texte = "  ";
+        const result = (0, app_1.countWords)(texte);
+        expect(result).toBe(0);
     });
 });
 //# sourceMappingURL=countwords.test.js.map
